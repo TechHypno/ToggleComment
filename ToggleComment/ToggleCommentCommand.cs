@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using EnvDTE;
 using EnvDTE80;
@@ -26,6 +27,7 @@ namespace ToggleComment
         /// コマンドのIDです。
         /// </summary>
         public const int CommandId = 0x0100;
+        public const int CommandId2X = 0x0101;
 
         /// <summary>
         /// コメントのパターンです。
@@ -36,6 +38,7 @@ namespace ToggleComment
         /// コマンドメニューグループのIDです。
         /// </summary>
         public static readonly Guid CommandSet = new Guid("85542055-97d7-4219-a793-8c077b81b25b");
+        public static readonly Guid CommandSet2X = new Guid("3FC315A8-7EC9-43EA-B05A-79D15DC4A6E3");
 
         /// <summary>
         /// シングルトンのインスタンスを取得します。
@@ -46,7 +49,7 @@ namespace ToggleComment
         /// インスタンスを初期化します。
         /// </summary>
         /// <param name="package">コマンドを提供するパッケージ</param>
-        private ToggleCommentCommand(Package package) : base(package, CommandId, CommandSet)
+        private ToggleCommentCommand(Package package, int commandId, Guid commandSet) : base(package, commandId, commandSet)
         {
             _commandTarget = (IOleCommandTarget)ServiceProvider.GetService(typeof(SUIHostCommandDispatcher));
         }
@@ -55,28 +58,40 @@ namespace ToggleComment
         /// このコマンドのシングルトンのインスタンスを初期化します。
         /// </summary>
         /// <param name="package">コマンドを提供するパッケージ</param>
-        public static void Initialize(Package package)
+        public static void Initialize(Package package, int commandId, Guid commandSet)
         {
-            Instance = new ToggleCommentCommand(package);
+            Instance = new ToggleCommentCommand(package, commandId, commandSet);
         }
 
         /// <inheritdoc />
         protected override void Execute(object sender, EventArgs e)
         {
+            void RunCommand(bool isComment)
+            {
+                var commandId = isComment ? VSConstants.VSStd2KCmdID.UNCOMMENT_BLOCK : VSConstants.VSStd2KCmdID.COMMENT_BLOCK;
+                ExecuteCommand(commandId);
+            }
+
             var dte = (DTE2)ServiceProvider.GetService(typeof(DTE));
             if (dte?.ActiveDocument.Object("TextDocument") is TextDocument textDocument)
             {
-                var patterns = _patterns.GetOrAdd(textDocument.Language, CreateCommentPatterns);
+                var is2X = ((MenuCommand)sender).CommandID.ID == ToggleCommentCommand.CommandId2X;
+                var patterns = _patterns.GetOrAdd(textDocument.Language, is2X, CreateCommentPatterns);
                 if (0 < patterns.Length)
                 {
                     var selection = textDocument.Selection;
                     SelectLines(selection);
                     var text = selection.Text;
-
                     var isComment = patterns.Any(x => x.IsComment(text));
-                    var commandId = isComment ? VSConstants.VSStd2KCmdID.UNCOMMENT_BLOCK : VSConstants.VSStd2KCmdID.COMMENT_BLOCK;
 
-                    ExecuteCommand(commandId);
+                    RunCommand(isComment);
+
+                    if (is2X)
+                    {
+                        RunCommand(isComment);
+                    }
+
+                    ExecuteCommand(VSConstants.VSStd2KCmdID.DOWN);
                 }
                 else if (ExecuteCommand(VSConstants.VSStd2KCmdID.COMMENT_BLOCK) == false)
                 {
@@ -91,7 +106,7 @@ namespace ToggleComment
         /// <summary>
         /// コードのコメントを表すパターンを作成します。
         /// </summary>
-        private static ICodeCommentPattern[] CreateCommentPatterns(string language)
+        private static ICodeCommentPattern[] CreateCommentPatterns(string language, bool is2X)
         {
             switch (language)
             {
@@ -99,7 +114,7 @@ namespace ToggleComment
                 case "C/C++":
                 case "TypeScript":
                     {
-                        return new ICodeCommentPattern[] { new LineCommentPattern("//"), new BlockCommentPattern("/*", "*/") };
+                        return new ICodeCommentPattern[] { new LineCommentPattern(is2X ? "////" : "//"), new BlockCommentPattern("/*", "*/") };
                     }
                 case "XML":
                 case "XAML":
@@ -157,7 +172,6 @@ namespace ToggleComment
                     }
             }
         }
-
         /// <summary>
         /// 指定のコマンドを実行します。
         /// コマンドが実行できなかった場合は<see langword="false"/>を返します。

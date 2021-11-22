@@ -24,7 +24,8 @@ namespace ToggleComment
         protected override void Initialize()
         {
             base.Initialize();
-            ToggleCommentCommand.Initialize(this);
+            ToggleCommentCommand.Initialize(this, ToggleCommentCommand.CommandId, ToggleCommentCommand.CommandSet);
+            ToggleCommentCommand.Initialize(this, ToggleCommentCommand.CommandId2X, ToggleCommentCommand.CommandSet2X);
         }
     }
 }
