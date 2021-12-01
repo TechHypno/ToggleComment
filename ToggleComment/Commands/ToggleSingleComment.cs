@@ -1,55 +1,58 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using EnvDTE;
-using EnvDTE80;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using ToggleComment.Codes;
-using ToggleComment.Utils;
+using System.ComponentModel;
 
 namespace ToggleComment
 {
+    #region Configuration
+    public partial class OptionPageGrid : DialogPage
+    {
+        private bool optionMoveCaretDown1C = false;
+        private bool optionMoveCaretDown1U = false;
+
+        [Category("Toggle Single Comment")]
+        [DisplayName("Move caret down when commenting.")]
+        [Description("Place the caret below the selection when commenting.")]
+        public bool OptionMoveCaretDown1C
+        {
+            get { return optionMoveCaretDown1C; }
+            set { optionMoveCaretDown1C = value; }
+        }
+
+        [Category("Toggle Single Comment")]
+        [DisplayName("Move caret down when uncommenting.")]
+        [Description("Place the caret below the selection when uncommenting.")]
+        public bool OptionMoveCaretDown1U
+        {
+            get { return optionMoveCaretDown1U; }
+            set { optionMoveCaretDown1U = value; }
+        }
+    }
+    #endregion
+
     /// <summary>
     /// 選択された行のコメントアウト・解除を行うコマンドです。
     /// </summary>
-    internal sealed class ToggleCommentCommand : CommandBase
+    internal sealed class ToggleSingleComment : CommandBase
     {
-        /// <summary>
-        /// コマンドの実行を委譲するインスタンスです。
-        /// </summary>
-        private readonly IOleCommandTarget _commandTarget;
-
         /// <summary>
         /// コマンドのIDです。
         /// </summary>
         public const int CommandId = 0x0100;
 
         /// <summary>
-        /// コメントのパターンです。
-        /// </summary>
-        private readonly IDictionary<string, ICodeCommentPattern[]> _patterns = new Dictionary<string, ICodeCommentPattern[]>();
-
-        /// <summary>
-        /// コマンドメニューグループのIDです。
-        /// </summary>
-        public static readonly Guid CommandSet = new Guid("85542055-97d7-4219-a793-8c077b81b25b");
-
-        /// <summary>
         /// シングルトンのインスタンスを取得します。
         /// </summary>
-        public static ToggleCommentCommand Instance { get; private set; }
+        public static ToggleSingleComment Instance { get; private set; }
 
         /// <summary>
         /// インスタンスを初期化します。
         /// </summary>
         /// <param name="package">コマンドを提供するパッケージ</param>
-        private ToggleCommentCommand(Package package) : base(package, CommandId, CommandSet)
-        {
-            _commandTarget = (IOleCommandTarget)ServiceProvider.GetService(typeof(SUIHostCommandDispatcher));
-        }
+        private ToggleSingleComment(Package package) : base(package, CommandId, CommandSet){}
 
         /// <summary>
         /// このコマンドのシングルトンのインスタンスを初期化します。
@@ -57,47 +60,39 @@ namespace ToggleComment
         /// <param name="package">コマンドを提供するパッケージ</param>
         public static void Initialize(Package package)
         {
-            Instance = new ToggleCommentCommand(package);
+            Instance = new ToggleSingleComment(package);
         }
 
-        /// <inheritdoc />
-        protected override void Execute(object sender, EventArgs e)
+        protected override void OnExecute(string language, ICodeCommentPattern[] patterns, TextSelection selection)
         {
-            var dte = (DTE2)ServiceProvider.GetService(typeof(DTE));
-            if (dte?.ActiveDocument.Object("TextDocument") is TextDocument textDocument)
+            SelectLines(selection);
+            var text = selection.Text;
+            var isComment = patterns.Any(x => x.IsComment(text));
+            if (isComment)
             {
-                var patterns = _patterns.GetOrAdd(textDocument.Language, CreateCommentPatterns);
-                if (0 < patterns.Length)
-                {
-                    var selection = textDocument.Selection;
-                    SelectLines(selection);
-                    var text = selection.Text;
-
-                    var isComment = patterns.Any(x => x.IsComment(text));
-                    var commandId = isComment ? VSConstants.VSStd2KCmdID.UNCOMMENT_BLOCK : VSConstants.VSStd2KCmdID.COMMENT_BLOCK;
-
-                    ExecuteCommand(commandId);
-                }
-                else if (ExecuteCommand(VSConstants.VSStd2KCmdID.COMMENT_BLOCK) == false)
-                {
-                    ShowMessageBox(
-                        "Toggle Comment is not executable.",
-                        $"{textDocument.Language} files is not supported.",
-                        OLEMSGICON.OLEMSGICON_INFO);
-                }
+                ExecuteCommand(VSConstants.VSStd2KCmdID.UNCOMMENT_BLOCK);
+                if (Config.OptionMoveCaretDown1U)
+                    ExecuteCommand(VSConstants.VSStd2KCmdID.DOWN);
+            }
+            else
+            {
+                ExecuteCommand(VSConstants.VSStd2KCmdID.COMMENT_BLOCK);
+                if (Config.OptionMoveCaretDown1C)
+                    ExecuteCommand(VSConstants.VSStd2KCmdID.DOWN);
             }
         }
 
         /// <summary>
         /// コードのコメントを表すパターンを作成します。
         /// </summary>
-        private static ICodeCommentPattern[] CreateCommentPatterns(string language)
+        protected override ICodeCommentPattern[] CreateCommentPatterns(string language)
         {
             switch (language)
             {
                 case "CSharp":
                 case "C/C++":
                 case "TypeScript":
+                case "JSON":
                     {
                         return new ICodeCommentPattern[] { new LineCommentPattern("//"), new BlockCommentPattern("/*", "*/") };
                     }
@@ -139,6 +134,7 @@ namespace ToggleComment
                         // MEMO : VS の UncommentSelection コマンドが PowerShell のブロックコメントに対応していない
                         return new[] { new LineCommentPattern("#") };
                     }
+                case "Lua":
                 case "SQL Server Tools":
                     {
                         return new[] { new LineCommentPattern("--") };
@@ -156,41 +152,6 @@ namespace ToggleComment
                         return new ICodeCommentPattern[0];
                     }
             }
-        }
-
-        /// <summary>
-        /// 指定のコマンドを実行します。
-        /// コマンドが実行できなかった場合は<see langword="false"/>を返します。
-        /// </summary>
-        private bool ExecuteCommand(VSConstants.VSStd2KCmdID commandId)
-        {
-            var grooupId = VSConstants.VSStd2K;
-            var result = _commandTarget.Exec(ref grooupId, (uint)commandId, 0, IntPtr.Zero, IntPtr.Zero);
-
-            return result == VSConstants.S_OK;
-        }
-
-        /// <summary>
-        /// 選択中の行を行選択状態にします。
-        /// </summary>
-        private static void SelectLines(TextSelection selection)
-        {
-            var startPoint = selection.TopPoint.CreateEditPoint();
-            startPoint.StartOfLine();
-
-            var endPoint = selection.BottomPoint.CreateEditPoint();
-            if (endPoint.AtStartOfLine == false || startPoint.Line == endPoint.Line)
-            {
-                endPoint.EndOfLine();
-            }
-
-            if (selection.Mode == vsSelectionMode.vsSelectionModeBox)
-            {
-                selection.Mode = vsSelectionMode.vsSelectionModeStream;
-            }
-
-            selection.MoveToPoint(startPoint);
-            selection.MoveToPoint(endPoint, true);
         }
     }
 }

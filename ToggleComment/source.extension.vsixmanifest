@@ -1,7 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="6A762AB7-ACE6-4653-8C88-2F780F9854D6" Version="2.0" Language="en-US" Publisher="TechHypno" />
+        <<<<<<< HEAD
+        <Identity Id="6A762AB7-ACE6-4653-8C88-2F780F9854D6" Version="2.1" Language="en-US" Publisher="TechHypno" />
+        =======
+        <Identity Id="b61761b3-d13a-42a7-8799-8dbc603ff1e7" Version="2.1" Language="en-US" Publisher="techhypno" />
+        >>>>>>> doublecomment
         <DisplayName>Toggle Comment 2022</DisplayName>
         <Description xml:space="preserve">This is a simple visual studio extension to comment/uncomment the selected lines.
 original author: https://github.com/munyabe</Description>
@@ -24,6 +28,7 @@ original author: https://github.com/munyabe</Description>
     </Installation>
     <Dependencies>
         <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+        <Dependency Id="Microsoft.VisualStudio.MPF.16.0" DisplayName="Visual Studio MPF 16.0" d:Source="Installed" Version="[16.0,17.0)" />
     </Dependencies>
     <Prerequisites>
         <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,18.0)" DisplayName="Visual Studio core editor" />
