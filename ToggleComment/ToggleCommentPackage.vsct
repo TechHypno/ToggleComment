@@ -47,18 +47,18 @@
               <CommandFlag>DefaultInvisible</CommandFlag>
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
-      <Button guid="guidToggleCommentPackageCmdSet" id="ToggleCommentCommandId" priority="0x0100" type="Button">
+      <Button guid="guidToggleCommentPackageCmdSet" id="ToggleSingleCommentCommandId" priority="0x0100" type="Button">
         <Parent guid="guidToggleCommentPackageCmdSet" id="MyMenuGroup" />
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
           <ButtonText>Toggle Comment</ButtonText>
         </Strings>
       </Button>
-      <Button guid="guidToggle2XCommentPackageCmdSet" id="Toggle2XCommentCommandId" priority="0x0101" type="Button">
-        <Parent guid="guidToggle2XCommentPackageCmdSet" id="MyMenuGroup" />
+      <Button guid="guidToggleCommentPackageCmdSet" id="ToggleDoubleCommentCommandId" priority="0x0101" type="Button">
+        <Parent guid="guidToggleCommentPackageCmdSet" id="MyMenuGroup" />
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
-          <ButtonText>Toggle Comment X2</ButtonText>
+          <ButtonText>Toggle Comment (Double)</ButtonText>
         </Strings>
       </Button>
     </Buttons>
@@ -75,17 +75,17 @@
   </Commands>
   
   <CommandPlacements>
-    <CommandPlacement guid="guidToggleCommentPackageCmdSet" id="ToggleCommentCommandId" priority="0x7520">
+    <CommandPlacement guid="guidToggleCommentPackageCmdSet" id="ToggleSingleCommentCommandId" priority="0x7520">
       <Parent guid="guidStdEditor" id="IDG_VS_EDITOR_ADVANCED_CMDS"/>
     </CommandPlacement>
-    <CommandPlacement guid="guidToggle2XCommentPackageCmdSet" id="Toggle2XCommentCommandId" priority="0x7521">
+    <CommandPlacement guid="guidToggleCommentPackageCmdSet" id="ToggleDoubleCommentCommandId" priority="0x7521">
       <Parent guid="guidStdEditor" id="IDG_VS_EDITOR_ADVANCED_CMDS"/>
     </CommandPlacement>
   </CommandPlacements>
 
   <KeyBindings>
-    <KeyBinding guid="guidToggleCommentPackageCmdSet" id="ToggleCommentCommandId" editor="GUID_TextEditorFactory" key1="0xBF" mod1="Control" />
-    <KeyBinding guid="guidToggle2XCommentPackageCmdSet" id="Toggle2XCommentCommandId" editor="GUID_TextEditorFactory" key1="0xBF" mod1="Shift Control" />
+    <KeyBinding guid="guidToggleCommentPackageCmdSet" id="ToggleSingleCommentCommandId" editor="GUID_TextEditorFactory" key1="0xBF" mod1="Control" />
+    <KeyBinding guid="guidToggleCommentPackageCmdSet" id="ToggleDoubleCommentCommandId" editor="GUID_TextEditorFactory" key1="0xBF" mod1="Shift Control" />
   </KeyBindings>
 
   <Symbols>    
@@ -95,13 +95,14 @@
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidToggleCommentPackageCmdSet" value="{85542055-97d7-4219-a793-8c077b81b25b}">
       <IDSymbol name="MyMenuGroup" value="0x1020" />
-      <IDSymbol name="ToggleCommentCommandId" value="0x0100" />
+      <IDSymbol name="ToggleSingleCommentCommandId" value="0x0100" />
+	  <IDSymbol name="ToggleDoubleCommentCommandId" value="0x0101" />
     </GuidSymbol>
 
-    <GuidSymbol name="guidToggle2XCommentPackageCmdSet" value="{3FC315A8-7EC9-43EA-B05A-79D15DC4A6E3}">
+    <!--<GuidSymbol name="guidToggleDoubleCommentPackageCmdSet" value="{3FC315A8-7EC9-43EA-B05A-79D15DC4A6E3}">
       <IDSymbol name="MyMenuGroup" value="0x1020" />
-      <IDSymbol name="Toggle2XCommentCommandId" value="0x0101" />
-    </GuidSymbol>
+      <IDSymbol name="ToggleDoubleCommentCommandId" value="0x0101" />
+    </GuidSymbol>-->
 
     <GuidSymbol name="guidImages" value="{5ff33c7a-8ace-435e-ac69-a95191a8da25}" >
       <IDSymbol name="bmpPic1" value="1" />

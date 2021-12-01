@@ -18,7 +18,7 @@ namespace ToggleComment.Utils
         /// <param name="addValueFactory">キーの値を生成するために使用される関数</param>
         /// <returns>キーの値。キーが<paramref name="dictionary"/>に既に存在する場合はキーの既存の値、キーが存在していなかった場合は<paramref name="addValueFactory"/>から返されたキーの新しい値になります。</returns>
         /// <exception cref="ArgumentNullException"><paramref name="dictionary"/>または<paramref name="addValueFactory"/>が<see langword="null"/>です。</exception>
-        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, bool is2X, Func<TKey, bool, TValue> addValueFactory)
+        public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TValue> addValueFactory)
         {
             if (dictionary == null)
             {
@@ -32,7 +32,7 @@ namespace ToggleComment.Utils
             TValue value;
             if (dictionary.TryGetValue(key, out value) == false)
             {
-                value = addValueFactory(key, is2X);
+                value = addValueFactory(key);
                 dictionary.Add(key, value);
             }
 

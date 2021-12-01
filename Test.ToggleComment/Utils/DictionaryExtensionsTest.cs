@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ToggleComment.Codes;
 using ToggleComment.Utils;
 
 namespace Test.ToggleComment.Utils
@@ -16,15 +15,14 @@ namespace Test.ToggleComment.Utils
         {
             var stringValues = new Dictionary<string, string>
             {
-                ["key1"] = "Hoge",
-                ["key2"] = "Rambo"
+                ["key1"] = "Hoge"
             };
 
-            Assert.AreEqual("Hoge", stringValues.GetOrAdd("key1", false, (key, is2X) => key + "_Fuga"));
+            Assert.AreEqual("Hoge", stringValues.GetOrAdd("key1", key => "Fuga"));
             Assert.AreEqual("Hoge", stringValues["key1"]);
 
-            Assert.AreEqual("Rambo", stringValues.GetOrAdd("key2", false, (key, is2X) => key + "_Piyo"));
-            Assert.AreEqual("Rambo", stringValues["key2"]);
+            Assert.AreEqual("key2_Piyo", stringValues.GetOrAdd("key2", key => key + "_Piyo"));
+            Assert.AreEqual("key2_Piyo", stringValues["key2"]);
         }
     }
 }
