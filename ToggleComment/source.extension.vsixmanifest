@@ -1,11 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <<<<<<< HEAD
         <Identity Id="6A762AB7-ACE6-4653-8C88-2F780F9854D6" Version="2.1" Language="en-US" Publisher="TechHypno" />
-        =======
-        <Identity Id="b61761b3-d13a-42a7-8799-8dbc603ff1e7" Version="2.1" Language="en-US" Publisher="techhypno" />
-        >>>>>>> doublecomment
         <DisplayName>Toggle Comment 2022</DisplayName>
         <Description xml:space="preserve">This is a simple visual studio extension to comment/uncomment the selected lines.
 original author: https://github.com/munyabe</Description>
